@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { getRedirectUrl, getRewrittenUrl, isRewrite, unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { AB_COOKIE, VISITOR_COOKIE, abTest, authGate, ensureVisitor, geoRewrite, visitorCountry, withProxyHeaders } from "@/lib/proxy-rules";
 import { SESSION_COOKIE, createSession, readSession } from "@/lib/session";
 import { config, proxy } from "@/proxy";
@@ -101,6 +101,17 @@ describe("visitor id", () => {
   it("leaves an existing id alone", () => {
     const res = ensureVisitor(req("/edge-config", { cookies: { [VISITOR_COOKIE]: "abc" } }));
     expect(res.cookies.get(VISITOR_COOKIE)).toBeUndefined();
+  });
+});
+
+describe("cookie flags", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("marks the A/B and visitor cookies Secure in production only", () => {
+    const flags = () => [abTest(req("/proxy/ab")).cookies.get(AB_COOKIE), ensureVisitor(req("/edge-config")).cookies.get(VISITOR_COOKIE)];
+    for (const cookie of flags()) expect(cookie).toMatchObject({ httpOnly: true, sameSite: "lax", secure: false });
+    vi.stubEnv("NODE_ENV", "production");
+    for (const cookie of flags()) expect(cookie).toMatchObject({ httpOnly: true, sameSite: "lax", secure: true });
   });
 });
 

@@ -3,6 +3,11 @@ import { SESSION_COOKIE, readSession } from "@/lib/session";
 
 // The rules src/proxy.ts applies, kept here so each one can be tested alone.
 
+// Cookie options shared by the rules, matching the session cookie: no
+// JavaScript access, and HTTPS-only in production (off locally, so
+// http://localhost still works).
+const cookieOptions = () => ({ httpOnly: true, sameSite: "lax" as const, secure: process.env.NODE_ENV === "production" });
+
 export const AB_COOKIE = "lab-ab";
 export const VARIANTS = ["a", "b"] as const;
 export type Variant = (typeof VARIANTS)[number];
@@ -24,7 +29,7 @@ export function abTest(request: NextRequest, random = Math.random) {
   const variant: Variant = isVariant(forced) ? forced : isVariant(saved) ? saved : random() < 0.5 ? "a" : "b";
   const response = NextResponse.rewrite(new URL(`/proxy/ab/${variant}`, request.url));
   if (variant !== saved) {
-    response.cookies.set(AB_COOKIE, variant, { path: "/proxy", maxAge: 60 * 60 * 24 * 30, httpOnly: true, sameSite: "lax" });
+    response.cookies.set(AB_COOKIE, variant, { ...cookieOptions(), path: "/proxy", maxAge: 60 * 60 * 24 * 30 });
   }
   return response;
 }
@@ -54,7 +59,7 @@ export function ensureVisitor(request: NextRequest) {
   const id = crypto.randomUUID();
   request.cookies.set(VISITOR_COOKIE, id);
   const response = NextResponse.next({ request: { headers: request.headers } });
-  response.cookies.set(VISITOR_COOKIE, id, { path: "/edge-config", maxAge: 60 * 60 * 24 * 365, httpOnly: true, sameSite: "lax" });
+  response.cookies.set(VISITOR_COOKIE, id, { ...cookieOptions(), path: "/edge-config", maxAge: 60 * 60 * 24 * 365 });
   return response;
 }
 
