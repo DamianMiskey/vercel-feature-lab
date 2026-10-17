@@ -34,9 +34,9 @@ export const features: Feature[] = [
   { slug: "redis", name: "Redis (Upstash)", category: "Storage", phase: 4, ready: true,
     summary: "Key-value data and counters through the Marketplace." },
 
-  { slug: "cron", name: "Cron Jobs", category: "Async & AI", phase: 5, ready: false,
+  { slug: "cron", name: "Cron Jobs", category: "Async & AI", phase: 5, ready: true,
     summary: "Run a route on a schedule." },
-  { slug: "after", name: "after()", category: "Async & AI", phase: 5, ready: false,
+  { slug: "after", name: "after()", category: "Async & AI", phase: 5, ready: true,
     summary: "Work that runs after the response is sent." },
   { slug: "ai", name: "AI SDK + AI Gateway", category: "Async & AI", phase: 5, ready: false,
     summary: "Streaming AI responses through Vercel's AI Gateway." },
