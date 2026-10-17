@@ -25,18 +25,23 @@ export function geoFrom(headers: Headers) {
 }
 
 export function requestInfo(headers: Headers) {
-  // x-vercel-id looks like "cpt1::iad1::abc123-…": the edge region that
-  // received the request, then the region where the function ran.
+  // x-vercel-id starts with the edge region that received the request, and
+  // ends with a request ID: "cpt1::xfpqn-1792…". It can also carry the
+  // function's region in between ("cpt1::iad1::…"), but on real requests to
+  // a function it usually doesn't, so fall back to VERCEL_REGION, which Vercel
+  // sets to the region the function runs in.
   const vercelId = headers.get("x-vercel-id");
-  const [edgeRegion, functionRegion] = vercelId?.split("::") ?? [];
+  const parts = vercelId?.split("::") ?? [];
+  const edgeRegion = parts.length >= 2 ? parts[0] : null;
+  const functionRegion = parts.length >= 3 ? parts[1] : (vercelId ? process.env.VERCEL_REGION ?? null : null);
   return {
     host: headers.get("host"),
     userAgent: headers.get("user-agent"),
     acceptLanguage: headers.get("accept-language"),
     forwardedFor: headers.get("x-forwarded-for"),
     vercelId,
-    edgeRegion: vercelId ? edgeRegion : null,
-    functionRegion: vercelId ? functionRegion : null,
+    edgeRegion,
+    functionRegion,
     onVercel: Boolean(vercelId),
     geo: geoFrom(headers),
   };

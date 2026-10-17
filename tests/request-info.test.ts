@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { geoFrom, requestInfo } from "@/lib/request-info";
 
 describe("requestInfo", () => {
@@ -6,6 +6,15 @@ describe("requestInfo", () => {
     const info = requestInfo(new Headers({ "x-vercel-id": "cpt1::iad1::abc123-1700000000000-def", host: "vercel.djmiskey.com" }));
     expect(info).toMatchObject({ onVercel: true, edgeRegion: "cpt1", functionRegion: "iad1", host: "vercel.djmiskey.com" });
   });
+
+  // Seen in production: two parts only, edge region + request ID.
+  it("uses VERCEL_REGION when x-vercel-id has no function region", () => {
+    vi.stubEnv("VERCEL_REGION", "iad1");
+    const info = requestInfo(new Headers({ "x-vercel-id": "cpt1::xfpqn-1792226923912-9562768ecb05" }));
+    expect(info).toMatchObject({ edgeRegion: "cpt1", functionRegion: "iad1" });
+  });
+
+  afterEach(() => { vi.unstubAllEnvs(); });
 
   it("reports local when Vercel headers are missing", () => {
     expect(requestInfo(new Headers())).toMatchObject({ onVercel: false, edgeRegion: null, functionRegion: null });

@@ -15,11 +15,11 @@ export const features: Feature[] = [
   { slug: "basics", name: "Request basics", category: "Basics", phase: 1, ready: true,
     summary: "Request inspector, Vercel geo headers, env vars vs secrets." },
 
-  { slug: "ssr", name: "Server rendering", category: "Rendering", phase: 2, ready: false,
+  { slug: "ssr", name: "Server rendering", category: "Rendering", phase: 2, ready: true,
     summary: "Render per request with Server Components." },
-  { slug: "static", name: "Static & ISR", category: "Rendering", phase: 2, ready: false,
+  { slug: "static", name: "Static & ISR", category: "Rendering", phase: 2, ready: true,
     summary: "Prerendered pages, revalidation on a timer or on demand." },
-  { slug: "streaming", name: "Streaming & PPR", category: "Rendering", phase: 2, ready: false,
+  { slug: "streaming", name: "Streaming & PPR", category: "Rendering", phase: 2, ready: true,
     summary: "A static shell first, dynamic parts streamed in (Cache Components)." },
 
   { slug: "proxy", name: "Proxy (middleware)", category: "Edge", phase: 3, ready: false,
