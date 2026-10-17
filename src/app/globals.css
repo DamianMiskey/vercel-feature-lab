@@ -188,3 +188,9 @@ input[type="range"] { accent-color: var(--accent); }
 details.codepeek > summary { display: inline-block; cursor: pointer; list-style: none; color: var(--accent-ink); border: 1px solid var(--border); border-radius: 6px; padding: 0.45rem 0.9rem; font-weight: 500; }
 details.codepeek > summary::-webkit-details-marker { display: none; }
 details.codepeek[open] > summary { margin-bottom: 0.25rem; }
+
+/* Rendering demos: side-by-side cells that fill in as they stream. */
+.cells { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.6rem; margin-bottom: 0.6rem; }
+.cell { border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 0.75rem; background: var(--bg); min-height: 4.2rem; }
+.cell strong { display: block; }
+.stamp { font-variant-numeric: tabular-nums; }

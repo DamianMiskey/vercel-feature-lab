@@ -1,3 +1,4 @@
+import { cacheLife } from "next/cache";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -6,8 +7,11 @@ import path from "node:path";
 // bundle doesn't need the source files.
 // Paths are relative to src/ so the file access is statically scoped: only
 // src/ gets traced into the deployment, not the whole project.
+// Source can't change within a deployment, so it's cached for the longest
+// life ("max"); a shorter one would cap the life of every page that uses it.
 async function readSource(file: string) {
   "use cache";
+  cacheLife("max");
   return readFile(path.join(process.cwd(), "src", file), "utf8");
 }
 

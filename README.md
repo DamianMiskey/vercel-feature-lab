@@ -19,7 +19,7 @@ Production build locally: `npm run build && npm start`.
 ```bash
 npm run lint
 npm run typecheck
-npm test          # Vitest: request helpers, feature registry, route handlers
+npm test          # Vitest: request helpers, feature registry, route handlers, revalidation webhook
 npm run build     # also catches Cache Components mistakes
 ```
 
@@ -41,14 +41,15 @@ CI (`.github/workflows/ci.yml`) runs all four on every pull request.
 ## Notes
 
 - **Cache Components** is on: pages are a static shell plus streamed dynamic parts (Partial Prerendering). Request-time APIs like `headers()` must sit inside `<Suspense>`, and values like `new Date()` must be either cached (`"use cache"`) or read after `await connection()`. The build fails otherwise. The `/basics` page shows both.
-- **`CodePeek`** reads source files with a `"use cache"` function scoped to `src/`, so the code is baked in at build time and only `src/` is traced into the deployment.
+- **`CodePeek`** reads source files with a `"use cache"` function scoped to `src/`, so the code is baked in at build time and only `src/` is traced into the deployment. It uses `cacheLife("max")`: a page's cache life is the shortest of everything on it, so a shorter one here would make every page revalidate early. `next build` prints each page's life in its "Revalidate" column.
+- **On-demand revalidation** (`/static`): the button is a Server Action calling `updateTag()`; CMS-style webhooks call `POST /api/static/revalidate` with `Authorization: Bearer $REVALIDATE_SECRET`, which runs `revalidateTag(tag, "max")`. Set `REVALIDATE_SECRET` (Sensitive) in Vercel; without it the webhook answers 503.
 - **Security headers** (HSTS, nosniff, frame denial, referrer and permissions policies, a baseline CSP) are set in `next.config.ts`. A nonce-based CSP arrives in phase 6.
 - **`npm audit`**: production dependencies are clean. Five findings sit in the ESLint toolchain (`eslint-config-next` → `fast-glob` → `micromatch` → `braces`, a ReDoS). No patched `braces` exists yet, and the linter never ships to Vercel.
 
 ## Roadmap
 
 - [x] **Phase 1: Scaffold.** Dashboard, feature registry, Request basics (request inspector, Vercel geo headers, env vars vs secrets, route handler), security headers, Vitest, CI
-- [ ] **Phase 2: Rendering.** SSR, SSG, ISR with on-demand revalidation, streaming, Partial Prerendering
+- [x] **Phase 2: Rendering.** Server rendering (Server and Client Components, searchParams), static and ISR (time-based, on demand with `updateTag`/`revalidateTag`, `generateStaticParams`), streaming and Partial Prerendering (parallel and nested Suspense, promises into `use()`, streaming route handlers)
 - [ ] **Phase 3: Edge.** Proxy (formerly middleware: geo, A/B, auth gate), Edge Config, Flags
 - [ ] **Phase 4: Storage.** Vercel Blob, Neon Postgres and Upstash Redis through the Marketplace
 - [ ] **Phase 5: Async & AI.** Cron Jobs, `after()`, AI SDK with AI Gateway
