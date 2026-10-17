@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { getRedirectUrl, getRewrittenUrl, isRewrite, unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
 import { describe, expect, it } from "vitest";
-import { AB_COOKIE, abTest, authGate, geoRewrite, visitorCountry, withProxyHeaders } from "@/lib/proxy-rules";
+import { AB_COOKIE, VISITOR_COOKIE, abTest, authGate, ensureVisitor, geoRewrite, visitorCountry, withProxyHeaders } from "@/lib/proxy-rules";
 import { SESSION_COOKIE, createSession, readSession } from "@/lib/session";
 import { config, proxy } from "@/proxy";
 
@@ -14,8 +14,8 @@ const req = (path: string, init: { headers?: Record<string, string>; cookies?: R
 
 // The docs call it unstable_doesProxyMatch; 16.3.8 still exports the Middleware name.
 describe("proxy matcher", () => {
-  it("runs on the Proxy pages only", () => {
-    for (const url of ["/proxy", "/proxy/ab", "/proxy/members"]) {
+  it("runs on the Proxy pages and /edge-config only", () => {
+    for (const url of ["/proxy", "/proxy/ab", "/proxy/members", "/edge-config"]) {
       expect(unstable_doesMiddlewareMatch({ config, nextConfig: {}, url }), url).toBe(true);
     }
     for (const url of ["/", "/basics", "/api/health", "/_next/static/chunk.js"]) {
@@ -87,6 +87,20 @@ describe("auth gate", () => {
     const res = await authGate(req("/proxy/members", { cookies: { [SESSION_COOKIE]: token } }), "k1");
     expect(getRedirectUrl(res)).toBeNull();
     expect(isRewrite(res)).toBe(false);
+  });
+});
+
+describe("visitor id", () => {
+  it("gives a first visit an id, visible to this request and saved in a cookie", () => {
+    const res = ensureVisitor(req("/edge-config"));
+    const id = res.cookies.get(VISITOR_COOKIE)?.value;
+    expect(id).toMatch(/^[0-9a-f-]{36}$/);
+    expect(res.headers.get("x-middleware-request-cookie")).toContain(`${VISITOR_COOKIE}=${id}`);
+  });
+
+  it("leaves an existing id alone", () => {
+    const res = ensureVisitor(req("/edge-config", { cookies: { [VISITOR_COOKIE]: "abc" } }));
+    expect(res.cookies.get(VISITOR_COOKIE)).toBeUndefined();
   });
 });
 
