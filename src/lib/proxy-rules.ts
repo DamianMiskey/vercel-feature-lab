@@ -44,6 +44,20 @@ export async function authGate(request: NextRequest, secret = process.env.SESSIO
   return session ? NextResponse.next() : back("required");
 }
 
+// Feature flags need a stable id per visitor to roll out to a percentage.
+// A first visit gets a random one, set on the response and also on this
+// request, so the page that's about to render sees it straight away.
+export const VISITOR_COOKIE = "lab-visitor";
+
+export function ensureVisitor(request: NextRequest) {
+  if (request.cookies.has(VISITOR_COOKIE)) return NextResponse.next();
+  const id = crypto.randomUUID();
+  request.cookies.set(VISITOR_COOKIE, id);
+  const response = NextResponse.next({ request: { headers: request.headers } });
+  response.cookies.set(VISITOR_COOKIE, id, { path: "/edge-config", maxAge: 60 * 60 * 24 * 365, httpOnly: true, sameSite: "lax" });
+  return response;
+}
+
 // Everything else: pass the request on, adding headers the page can read.
 // set() overwrites, so a client can't spoof these by sending them itself.
 export function withProxyHeaders(request: NextRequest) {

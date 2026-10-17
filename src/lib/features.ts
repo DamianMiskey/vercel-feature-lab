@@ -24,7 +24,7 @@ export const features: Feature[] = [
 
   { slug: "proxy", name: "Proxy (middleware)", category: "Edge", phase: 3, ready: true,
     summary: "Geo routing, A/B tests and auth gates before the page runs." },
-  { slug: "edge-config", name: "Edge Config & Flags", category: "Edge", phase: 3, ready: false,
+  { slug: "edge-config", name: "Edge Config & Flags", category: "Edge", phase: 3, ready: true,
     summary: "Ultra-fast reads of config and feature flags." },
 
   { slug: "blob", name: "Vercel Blob", category: "Storage", phase: 4, ready: false,
