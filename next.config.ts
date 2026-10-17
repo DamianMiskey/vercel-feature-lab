@@ -19,7 +19,14 @@ const nextConfig: NextConfig = {
   // Don't advertise the framework in an X-Powered-By header.
   poweredByHeader: false,
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      // Uploaded files (Blob demo): even if one weren't the image it claims to
+      // be, opening it directly couldn't run scripts or load anything. Config
+      // headers override a route's own, and the later rule wins, so this
+      // stricter policy has to live here, after the general one.
+      { source: "/api/blob/:name", headers: [{ key: "Content-Security-Policy", value: "default-src 'none'; sandbox" }] },
+    ];
   },
 };
 
