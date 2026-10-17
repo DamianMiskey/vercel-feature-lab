@@ -1,16 +1,14 @@
-import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { SESSION_COOKIE, readSession } from "@/lib/session";
+import { currentSession } from "@/lib/current-session";
 import { signOut } from "../actions";
 
 // Proxy already let this request through, but the page checks the session
 // again before showing anything private: Proxy can be skipped by
 // misconfigured matchers, so the data layer must not rely on it alone.
 async function Members() {
-  const secret = process.env.SESSION_SECRET;
-  const session = secret ? await readSession((await cookies()).get(SESSION_COOKIE)?.value, secret) : null;
+  const session = await currentSession();
   if (!session) redirect("/proxy?signin=required#auth");
   return (
     <>

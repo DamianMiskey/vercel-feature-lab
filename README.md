@@ -19,7 +19,7 @@ Production build locally: `npm run build && npm start`.
 ```bash
 npm run lint
 npm run typecheck
-npm test          # Vitest: request helpers, feature registry, route handlers, revalidation webhook, Proxy rules and session cookies, flag bucketing
+npm test          # Vitest: request helpers, feature registry, route handlers, revalidation webhook, Proxy rules and session cookies, flag bucketing, upload checks
 npm run build     # also catches Cache Components mistakes
 ```
 
@@ -36,7 +36,7 @@ CI (`.github/workflows/ci.yml`) runs all four on every pull request.
 | `src/components/` | `FeaturePage`, `Demo`, `JsonView`, `CodePeek`, `Nav` |
 | `src/proxy.ts` | Proxy (formerly middleware); its rules live in `src/lib/proxy-rules.ts` |
 | `src/flags.ts` | Feature flags (Flags SDK), decided from Global Config |
-| `next.config.ts` | Cache Components + security headers |
+| `next.config.ts` | Cache Components + security headers (plus a sandboxing CSP for uploaded files) |
 
 **Adding a feature:** create `src/app/<slug>/page.tsx` using `FeaturePage`, then set `ready: true` in `features.ts`. A test checks that every ready feature has a page.
 
@@ -49,6 +49,7 @@ CI (`.github/workflows/ci.yml`) runs all four on every pull request.
 - **Proxy** (`/proxy`) only runs on `/proxy/*` (see its `matcher`). It rewrites `/proxy/ab` and `/proxy/geo` to prerendered pages, so the personalised routes stay static, and gates `/proxy/members` with an HMAC-signed session cookie. Set `SESSION_SECRET` (Sensitive) in Vercel; without it sign-in is switched off. The members page re-checks the session itself rather than trusting Proxy alone.
 - **Global Config** (formerly Edge Config, `/edge-config`) reads the `feature-lab` store through the `GLOBAL_CONFIG` connection string (Sensitive). `vercel storage connect` currently fails for Global Config ("Generating edge-config environment variables is not supported"), so the variable was set by hand from a read token: `vercel global-config tokens feature-lab --add <label>`. Edit items with `vercel global-config update feature-lab --patch '[{"operation":"upsert","key":"…","value":…}]'`; changes show up within seconds, no redeploy.
 - **Feature flags** use the Flags SDK, which needs `FLAGS_SECRET` (32 random bytes, base64url, a different value per environment). The `new-hero` flag hashes the `lab-visitor` cookie (set by Proxy on `/edge-config`) into a bucket 0–99 and is on below `rollout.new-hero` in Global Config.
+- **Vercel Blob** (`/blob`) uses the private store `lab-uploads`, connected with OIDC: on Vercel the SDK signs in with the deployment's short-lived token (`BLOB_STORE_ID` + `VERCEL_OIDC_TOKEN`), so there's no long-lived Blob key. Locally, copy those two from `vercel env pull` into `.env.local` (the token lasts ~12 hours). Uploads need the lab session (sign in on `/proxy`; the session cookie is now site-wide), must be PNG/JPEG/GIF/WebP by their bytes (no SVG), stay under 900 KB (Server Actions cap bodies at 1 MB), get random names, and only the newest 12 are kept. Files are served by `/api/blob/[name]`, which checks the session; `next.config.ts` gives those responses `default-src 'none'; sandbox` (config headers override a route's own). Heads-up: `vercel blob del` with several pathnames joins them into one key and deletes nothing, despite reporting success; delete one at a time.
 - **`npm audit`**: production dependencies are clean. Five findings sit in the ESLint toolchain (`eslint-config-next` → `fast-glob` → `micromatch` → `braces`, a ReDoS). No patched `braces` exists yet, and the linter never ships to Vercel.
 
 ## Roadmap
@@ -56,7 +57,7 @@ CI (`.github/workflows/ci.yml`) runs all four on every pull request.
 - [x] **Phase 1: Scaffold.** Dashboard, feature registry, Request basics (request inspector, Vercel geo headers, env vars vs secrets, route handler), security headers, Vitest, CI
 - [x] **Phase 2: Rendering.** Server rendering (Server and Client Components, searchParams), static and ISR (time-based, on demand with `updateTag`/`revalidateTag`, `generateStaticParams`), streaming and Partial Prerendering (parallel and nested Suspense, promises into `use()`, streaming route handlers)
 - [x] **Phase 3: Edge.** Proxy (formerly middleware: headers, A/B test, geo routing, auth gate), Global Config (formerly Edge Config), feature flags with the Flags SDK and a gradual rollout
-- [ ] **Phase 4: Storage.** Vercel Blob, Neon Postgres and Upstash Redis through the Marketplace
+- [ ] **Phase 4: Storage.** ~~Vercel Blob (private, OIDC)~~ done; Neon Postgres and Upstash Redis through the Marketplace still to do
 - [ ] **Phase 5: Async & AI.** Cron Jobs, `after()`, AI SDK with AI Gateway
 - [ ] **Phase 6: Security.** CSP with nonces, Firewall and bot protection, rate limiting, BotID
 - [ ] **Phase 7: Platform.** Preview deployments, Analytics, Speed Insights, Observability, Vercel vs Cloudflare comparison

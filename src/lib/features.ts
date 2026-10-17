@@ -27,7 +27,7 @@ export const features: Feature[] = [
   { slug: "edge-config", name: "Edge Config & Flags", category: "Edge", phase: 3, ready: true,
     summary: "Ultra-fast reads of config and feature flags." },
 
-  { slug: "blob", name: "Vercel Blob", category: "Storage", phase: 4, ready: false,
+  { slug: "blob", name: "Vercel Blob", category: "Storage", phase: 4, ready: true,
     summary: "File and object storage." },
   { slug: "postgres", name: "Postgres (Neon)", category: "Storage", phase: 4, ready: false,
     summary: "Serverless Postgres through the Vercel Marketplace." },
