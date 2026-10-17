@@ -38,7 +38,7 @@ export const features: Feature[] = [
     summary: "Run a route on a schedule." },
   { slug: "after", name: "after()", category: "Async & AI", phase: 5, ready: true,
     summary: "Work that runs after the response is sent." },
-  { slug: "ai", name: "AI SDK + AI Gateway", category: "Async & AI", phase: 5, ready: false,
+  { slug: "ai", name: "AI SDK + AI Gateway", category: "Async & AI", phase: 5, ready: true,
     summary: "Streaming AI responses through Vercel's AI Gateway." },
 
   { slug: "security", name: "Security", category: "Security", phase: 6, ready: false,
