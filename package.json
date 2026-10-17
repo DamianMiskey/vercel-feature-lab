@@ -9,9 +9,13 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:migrate": "node --env-file=.env.local scripts/migrate.mjs"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.2.0",
+    "@upstash/ratelimit": "^2.2.0",
+    "@upstash/redis": "^1.39.0",
     "@vercel/blob": "^2.8.2",
     "@vercel/global-config": "^1.5.1",
     "flags": "^4.3.1",

@@ -29,9 +29,9 @@ export const features: Feature[] = [
 
   { slug: "blob", name: "Vercel Blob", category: "Storage", phase: 4, ready: true,
     summary: "File and object storage." },
-  { slug: "postgres", name: "Postgres (Neon)", category: "Storage", phase: 4, ready: false,
+  { slug: "postgres", name: "Postgres (Neon)", category: "Storage", phase: 4, ready: true,
     summary: "Serverless Postgres through the Vercel Marketplace." },
-  { slug: "redis", name: "Redis (Upstash)", category: "Storage", phase: 4, ready: false,
+  { slug: "redis", name: "Redis (Upstash)", category: "Storage", phase: 4, ready: true,
     summary: "Key-value data and counters through the Marketplace." },
 
   { slug: "cron", name: "Cron Jobs", category: "Async & AI", phase: 5, ready: false,

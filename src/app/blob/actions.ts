@@ -3,6 +3,7 @@
 import { del, list, put } from "@vercel/blob";
 import { refresh } from "next/cache";
 import { currentSession } from "@/lib/current-session";
+import { checkLimit, retryIn, writeLimit } from "@/lib/redis";
 import { KEEP_UPLOADS, UPLOAD_PREFIX, blobConfigured, checkUpload, uploadPathname } from "@/lib/uploads";
 
 export type UploadState = { message: string; error: boolean } | null;
@@ -17,6 +18,9 @@ export async function uploadImage(_prev: UploadState, formData: FormData): Promi
 
   const check = await checkUpload(formData.get("file"));
   if (!check.ok) return { message: check.error, error: true };
+
+  const limit = await checkLimit(writeLimit);
+  if (limit && !limit.success) return { message: `Slow down: try again in ${retryIn(limit.reset)} s.`, error: true };
 
   const blob = await put(uploadPathname(check.kind.ext), Buffer.from(check.bytes), {
     access: "private",
