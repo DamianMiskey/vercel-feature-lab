@@ -2,7 +2,7 @@
 
 A hands-on tour of Vercel and Next.js. Each page demos one feature live, explains it, and shows the code behind it. It's the companion to the [Cloudflare Feature Lab](https://lab.djmiskey.com) ([repo](https://github.com/DamianMiskey/cf-feature-lab)), built to the same pattern so the two platforms can be compared side by side.
 
-**Stack:** Next.js 16 (App Router, TypeScript, **Cache Components**) · deployed on Vercel at `vercel.djmiskey.com` (planned).
+**Stack:** Next.js 16 (App Router, TypeScript, **Cache Components**) · live at **https://vercel.djmiskey.com** (also `vercel-feature-lab.vercel.app`).
 
 ## Run it
 
@@ -63,6 +63,7 @@ CI (`.github/workflows/ci.yml`) runs all four on every pull request.
 - **BotID** runs at the Basic level only (free on all plans; Deep Analysis is Pro-only and paid). It protects `/api/security/botid` and the guestbook. Off Vercel it can't run, so `verifyHuman()` treats every non-Vercel environment as development.
 - **Web Analytics and Speed Insights** are `<Analytics />` and `<SpeedInsights />` in the root layout, inside `<Suspense>` (they read search params). Both are free on Hobby and pause at their limits instead of billing: 50,000 analytics events a month, 10,000 Speed Insights events per rolling 30 days. They must also be switched on in the project's Analytics and Speed Insights tabs. Their scripts load from `/_vercel/…` on this domain, so the CSP needs no exceptions.
 - **`/observability`** shows the deployment's system variables (production vs preview, branch, commit, URLs) and writes a JSON log line you can find with `vercel logs`. **`/vs-cloudflare`** maps every page here to its counterpart in the Cloudflare lab.
+- **Custom domain**: `vercel.djmiskey.com` is a `CNAME` to the project's Vercel DNS target, added in Cloudflare (where `djmiskey.com` lives) with the proxy **off** (DNS only), so Vercel issues the certificate and its Firewall, BotID and geo headers see real visitors. The nameservers stay on Cloudflare, so `lab.djmiskey.com` and email are untouched.
 - **`npm audit`**: production dependencies are clean. Five findings sit in the ESLint toolchain (`eslint-config-next` → `fast-glob` → `micromatch` → `braces`, a ReDoS). No patched `braces` exists yet, and the linter never ships to Vercel.
 
 ## Roadmap
