@@ -2,7 +2,7 @@
 
 A hands-on tour of Vercel and Next.js. Each page demos one feature live, explains it, and shows the code behind it. It's the companion to the [Cloudflare Feature Lab](https://lab.djmiskey.com) ([repo](https://github.com/DamianMiskey/cf-feature-lab)), built to the same pattern so the two platforms can be compared side by side.
 
-**Stack:** Next.js 16 (App Router, TypeScript, **Cache Components**) · live at **https://vercel.djmiskey.com** (also `vercel-feature-lab.vercel.app`).
+**Stack:** Next.js 16 (App Router, TypeScript, **Cache Components**) · live at **https://vercel.djmiskey.com** (`vercel-feature-lab.vercel.app` redirects there with a 308).
 
 ## Run it
 
@@ -64,6 +64,7 @@ CI (`.github/workflows/ci.yml`) runs all four on every pull request.
 - **Web Analytics and Speed Insights** are `<Analytics />` and `<SpeedInsights />` in the root layout, inside `<Suspense>` (they read search params). Both are free on Hobby and pause at their limits instead of billing: 50,000 analytics events a month, 10,000 Speed Insights events per rolling 30 days. They must also be switched on in the project's Analytics and Speed Insights tabs. Their scripts load from `/_vercel/…` on this domain, so the CSP needs no exceptions.
 - **`/observability`** shows the deployment's system variables (production vs preview, branch, commit, URLs) and writes a JSON log line you can find with `vercel logs`. **`/vs-cloudflare`** maps every page here to its counterpart in the Cloudflare lab.
 - **Custom domain**: `vercel.djmiskey.com` is a `CNAME` to the project's Vercel DNS target, added in Cloudflare (where `djmiskey.com` lives) with the proxy **off** (DNS only), so Vercel issues the certificate and its Firewall, BotID and geo headers see real visitors. The nameservers stay on Cloudflare, so `lab.djmiskey.com` and email are untouched.
+- **Search engines**: `app/robots.ts` opens the feature pages and asks crawlers to skip `/api/`, the members area, Proxy rewrite targets and the challenge demo; `app/sitemap.ts` lists the home page and every ready feature. The `.vercel.app` domain 308-redirects to the custom one (a project domain setting), so each page has one address; Vercel already sends `x-robots-tag: noindex` on preview deployments. Cron jobs call the deployment directly, so the redirect doesn't affect them.
 - **`npm audit`**: production dependencies are clean. Five findings sit in the ESLint toolchain (`eslint-config-next` → `fast-glob` → `micromatch` → `braces`, a ReDoS). No patched `braces` exists yet, and the linter never ships to Vercel.
 
 ## Roadmap
