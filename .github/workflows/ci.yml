@@ -1,0 +1,46 @@
+# Runs on every pull request to main: lint, typecheck, tests and a production
+# build. Vercel's Git integration does the deploying (a preview per PR,
+# production after merge).
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# A newer push to the same PR cancels the run that's still going.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Lint, typecheck, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      # Fails on Cache Components mistakes too (e.g. an uncached new Date() in a prerendered page).
+      - name: Build
+        run: npm run build

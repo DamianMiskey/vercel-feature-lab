@@ -1,0 +1,56 @@
+# Vercel Feature Lab
+
+A hands-on tour of Vercel and Next.js. Each page demos one feature live, explains it, and shows the code behind it. It's the companion to the [Cloudflare Feature Lab](https://lab.djmiskey.com) ([repo](https://github.com/DamianMiskey/cf-feature-lab)), built to the same pattern so the two platforms can be compared side by side.
+
+**Stack:** Next.js 16 (App Router, TypeScript, **Cache Components**) · deployed on Vercel at `vercel.djmiskey.com` (planned).
+
+## Run it
+
+```bash
+npm install
+cp .env.example .env.local   # local env vars and a dummy secret
+npm run dev                  # http://localhost:3000
+```
+
+Production build locally: `npm run build && npm start`.
+
+## Checks
+
+```bash
+npm run lint
+npm run typecheck
+npm test          # Vitest: request helpers, feature registry, route handlers
+npm run build     # also catches Cache Components mistakes
+```
+
+CI (`.github/workflows/ci.yml`) runs all four on every pull request.
+
+## Layout
+
+| Path | What lives there |
+|------|------------------|
+| `src/lib/features.ts` | Registry of all features; drives the nav and the home page |
+| `src/app/<slug>/page.tsx` | One folder per built feature page |
+| `src/app/[slug]/page.tsx` | Placeholder pages for features from later phases |
+| `src/app/api/*/route.ts` | Route handlers (API endpoints, run as Vercel Functions) |
+| `src/components/` | `FeaturePage`, `Demo`, `JsonView`, `CodePeek`, `Nav` |
+| `next.config.ts` | Cache Components + security headers |
+
+**Adding a feature:** create `src/app/<slug>/page.tsx` using `FeaturePage`, then set `ready: true` in `features.ts`. A test checks that every ready feature has a page.
+
+## Notes
+
+- **Cache Components** is on: pages are a static shell plus streamed dynamic parts (Partial Prerendering). Request-time APIs like `headers()` must sit inside `<Suspense>`, and values like `new Date()` must be either cached (`"use cache"`) or read after `await connection()`. The build fails otherwise. The `/basics` page shows both.
+- **`CodePeek`** reads source files with a `"use cache"` function scoped to `src/`, so the code is baked in at build time and only `src/` is traced into the deployment.
+- **Security headers** (HSTS, nosniff, frame denial, referrer and permissions policies, a baseline CSP) are set in `next.config.ts`. A nonce-based CSP arrives in phase 6.
+- **`npm audit`**: production dependencies are clean. Five findings sit in the ESLint toolchain (`eslint-config-next` → `fast-glob` → `micromatch` → `braces`, a ReDoS). No patched `braces` exists yet, and the linter never ships to Vercel.
+
+## Roadmap
+
+- [x] **Phase 1: Scaffold.** Dashboard, feature registry, Request basics (request inspector, Vercel geo headers, env vars vs secrets, route handler), security headers, Vitest, CI
+- [ ] **Phase 2: Rendering.** SSR, SSG, ISR with on-demand revalidation, streaming, Partial Prerendering
+- [ ] **Phase 3: Edge.** Proxy (formerly middleware: geo, A/B, auth gate), Edge Config, Flags
+- [ ] **Phase 4: Storage.** Vercel Blob, Neon Postgres and Upstash Redis through the Marketplace
+- [ ] **Phase 5: Async & AI.** Cron Jobs, `after()`, AI SDK with AI Gateway
+- [ ] **Phase 6: Security.** CSP with nonces, Firewall and bot protection, rate limiting, BotID
+- [ ] **Phase 7: Platform.** Preview deployments, Analytics, Speed Insights, Observability, Vercel vs Cloudflare comparison
