@@ -52,7 +52,7 @@ export default function ObservabilityPage() {
       <Demo title="2. Runtime logs">
         <p>The button runs a Server Action that prints one JSON line. On Vercel it lands in the runtime logs within seconds.</p>
         <LogButton />
-        <p className="small muted">From a terminal: <code>vercel logs vercel-feature-lab.vercel.app</code>.</p>
+        <p className="small muted">From a terminal: <code>vercel logs --environment production --since 10m</code>, then look for the id.</p>
       </Demo>
 
       <Demo title="3. Web Analytics and Speed Insights">
