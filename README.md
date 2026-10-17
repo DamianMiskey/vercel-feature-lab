@@ -19,7 +19,7 @@ Production build locally: `npm run build && npm start`.
 ```bash
 npm run lint
 npm run typecheck
-npm test          # Vitest: request helpers, feature registry, route handlers, revalidation webhook, Proxy rules and session cookies, flag bucketing, upload checks, note rules, rate-limit helpers, cron route and config, simulated AI chat, CSP, firewall rules and reports
+npm test          # Vitest: request helpers, feature registry, route handlers, revalidation webhook, Proxy rules and session cookies, flag bucketing, upload checks, note rules, rate-limit helpers, cron route and config, simulated AI chat, CSP, firewall rules and reports, the comparison table
 npm run build     # also catches Cache Components mistakes
 npm run db:migrate  # applies db/schema.sql to DATABASE_URL (safe to re-run)
 ```
@@ -32,17 +32,17 @@ CI (`.github/workflows/ci.yml`) runs all four on every pull request.
 |------|------------------|
 | `src/lib/features.ts` | Registry of all features; drives the nav and the home page |
 | `src/app/<slug>/page.tsx` | One folder per built feature page |
-| `src/app/[slug]/page.tsx` | Placeholder pages for features from later phases |
 | `src/app/api/*/route.ts` | Route handlers (API endpoints, run as Vercel Functions) |
 | `src/components/` | `FeaturePage`, `Demo`, `JsonView`, `CodePeek`, `Nav` |
 | `src/proxy.ts` | Proxy (formerly middleware); its rules live in `src/lib/proxy-rules.ts` |
 | `src/flags.ts` | Feature flags (Flags SDK), decided from Global Config |
 | `vercel.json` | Cron schedule and Firewall rules |
+| `src/lib/comparison.ts` | Vercel vs Cloudflare mapping (tests keep it in sync with both labs' pages) |
 | `src/instrumentation-client.ts` | BotID client (which routes get the invisible challenge) |
 | `db/schema.sql` | Postgres schema (the guestbook table) |
 | `next.config.ts` | Cache Components + security headers (plus a sandboxing CSP for uploaded files) |
 
-**Adding a feature:** create `src/app/<slug>/page.tsx` using `FeaturePage`, then set `ready: true` in `features.ts`. A test checks that every ready feature has a page.
+**Adding a feature:** create `src/app/<slug>/page.tsx` using `FeaturePage` and add it to `features.ts` with `ready: true`. A test checks that every ready feature has a page. (The `[slug]` placeholder route for unbuilt features was removed once every feature was built; bring it back if you add `ready: false` entries.)
 
 ## Notes
 
@@ -61,6 +61,8 @@ CI (`.github/workflows/ci.yml`) runs all four on every pull request.
 - **CSP** comes in two strengths. Site-wide (`next.config.ts`): everything locked to this site, but `script-src` must allow `'unsafe-inline'`, because prerendered pages carry Next.js's inline scripts and a nonce can't be baked in at build time (hash-based SRI only covers script files, and is experimental). `/security` shows the strict version: Proxy sets a per-request nonce with `'strict-dynamic'`, and the page has **no static shell** (`export const instant = false` plus `await connection()` outside Suspense), because a prerendered shell's scripts have no nonce and would be blocked. Violations go to `/api/security/csp-report` via `report-uri` (immediate; `report-to` batches for up to a minute) and the last ten are kept in Redis. Verified in headless Edge: the nonce'd script runs, the injected one is blocked and reported, and no other page logs a CSP error.
 - **Firewall** rules live in `vercel.json` `routes` with `mitigate`: deny common scanner paths (`/wp-admin`, `/.env`, `/.git`…) and challenge `/security/challenge`. Custom rules (up to 3 on Hobby), IP blocks and Attack Mode are free, and mitigated traffic isn't billed. WAF rate limiting is billed, so the lab rate-limits with Upstash instead.
 - **BotID** runs at the Basic level only (free on all plans; Deep Analysis is Pro-only and paid). It protects `/api/security/botid` and the guestbook. Off Vercel it can't run, so `verifyHuman()` treats every non-Vercel environment as development.
+- **Web Analytics and Speed Insights** are `<Analytics />` and `<SpeedInsights />` in the root layout, inside `<Suspense>` (they read search params). Both are free on Hobby and pause at their limits instead of billing: 50,000 analytics events a month, 10,000 Speed Insights events per rolling 30 days. They must also be switched on in the project's Analytics and Speed Insights tabs. Their scripts load from `/_vercel/…` on this domain, so the CSP needs no exceptions.
+- **`/observability`** shows the deployment's system variables (production vs preview, branch, commit, URLs) and writes a JSON log line you can find with `vercel logs`. **`/vs-cloudflare`** maps every page here to its counterpart in the Cloudflare lab.
 - **`npm audit`**: production dependencies are clean. Five findings sit in the ESLint toolchain (`eslint-config-next` → `fast-glob` → `micromatch` → `braces`, a ReDoS). No patched `braces` exists yet, and the linter never ships to Vercel.
 
 ## Roadmap
@@ -71,4 +73,4 @@ CI (`.github/workflows/ci.yml`) runs all four on every pull request.
 - [x] **Phase 4: Storage.** Vercel Blob (private, OIDC), Neon Postgres (guestbook) and Upstash Redis (atomic counter, rate limits) through the Marketplace
 - [x] **Phase 5: Async & AI.** Cron Jobs, `after()`, AI SDK chat (simulated model; AI Gateway one env var away)
 - [x] **Phase 6: Security.** Site-wide CSP plus a strict nonce CSP with violation reports, Firewall rules in `vercel.json`, BotID (Basic), rate limiting with Upstash
-- [ ] **Phase 7: Platform.** Preview deployments, Analytics, Speed Insights, Observability, Vercel vs Cloudflare comparison
+- [x] **Phase 7: Platform.** Web Analytics, Speed Insights, runtime logs and deployment info, Vercel vs Cloudflare comparison

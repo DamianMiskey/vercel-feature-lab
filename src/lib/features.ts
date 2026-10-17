@@ -1,5 +1,5 @@
 // Single source of truth for the dashboard: every Vercel / Next.js feature in
-// the lab, grouped by category. `ready: false` marks features from later phases.
+// the lab, grouped by category. `ready: false` would mark an unbuilt feature.
 export type Category = "Basics" | "Rendering" | "Edge" | "Storage" | "Async & AI" | "Security" | "Platform";
 
 export type Feature = {
@@ -44,9 +44,9 @@ export const features: Feature[] = [
   { slug: "security", name: "Security", category: "Security", phase: 6, ready: true,
     summary: "CSP with nonces, Firewall, bot protection, rate limits, BotID." },
 
-  { slug: "observability", name: "Analytics & Observability", category: "Platform", phase: 7, ready: false,
+  { slug: "observability", name: "Analytics & Observability", category: "Platform", phase: 7, ready: true,
     summary: "Web Analytics, Speed Insights, logs and preview deployments." },
-  { slug: "vs-cloudflare", name: "Vercel vs Cloudflare", category: "Platform", phase: 7, ready: false,
+  { slug: "vs-cloudflare", name: "Vercel vs Cloudflare", category: "Platform", phase: 7, ready: true,
     summary: "The same features side by side with the Cloudflare lab." },
 ];
 

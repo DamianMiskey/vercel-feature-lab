@@ -1,4 +1,7 @@
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Nav } from "@/components/Nav";
 import "./globals.css";
 
@@ -15,6 +18,14 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <Nav />
           <main className="content">{children}</main>
         </div>
+        {/* Web Analytics (page views) and Speed Insights (real-user performance).
+            Both load their script from this site's /_vercel/ path, so the CSP
+            needs no exceptions. They read the URL's search params, which
+            Cache Components requires inside a Suspense boundary. */}
+        <Suspense fallback={null}>
+          <Analytics />
+          <SpeedInsights />
+        </Suspense>
       </body>
     </html>
   );
