@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { abTest, authGate, ensureVisitor, geoRewrite, withProxyHeaders } from "@/lib/proxy-rules";
+import { abTest, authGate, ensureVisitor, geoRewrite, withProxyHeaders, withStrictCsp } from "@/lib/proxy-rules";
 
 // Proxy (called Middleware before Next.js 16) runs before the route, on every
 // request the matcher selects. On Vercel it runs as a Vercel Function, on the
@@ -9,7 +9,8 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const [rule, response] =
-    pathname === "/edge-config" ? ["visitor-id", ensureVisitor(request)] as const
+    pathname === "/security" ? ["strict-csp", withStrictCsp(request)] as const
+    : pathname === "/edge-config" ? ["visitor-id", ensureVisitor(request)] as const
     : pathname === "/proxy/ab" ? ["ab-test", abTest(request)] as const
     : pathname === "/proxy/geo" ? ["geo", geoRewrite(request)] as const
     : pathname.startsWith("/proxy/members") ? ["auth-gate", await authGate(request)] as const
@@ -20,9 +21,9 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
-// Only the lab's Proxy pages, plus /edge-config (visitor ids for feature
-// flags), go through Proxy. Without a matcher it would run on every request,
-// static files included.
+// Only the lab's Proxy pages, /edge-config (visitor ids for feature flags)
+// and /security (a per-request CSP nonce) go through Proxy. Without a
+// matcher it would run on every request, static files included.
 export const config = {
-  matcher: ["/proxy/:path*", "/edge-config"],
+  matcher: ["/proxy/:path*", "/edge-config", "/security"],
 };
