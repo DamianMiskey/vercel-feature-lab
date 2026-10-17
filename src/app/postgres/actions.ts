@@ -1,6 +1,7 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { verifyHuman } from "@/lib/botid";
 import { currentSession } from "@/lib/current-session";
 import { addNote, dbConfigured } from "@/lib/db";
 import { checkNote } from "@/lib/notes";
@@ -15,6 +16,9 @@ export async function postNote(_prev: NoteState, formData: FormData): Promise<No
 
   const note = checkNote(formData.get("body"));
   if (!note.ok) return { message: note.error, error: true };
+
+  // BotID (Basic, free): the form's page solved an invisible challenge; scripts posting directly haven't.
+  if ((await verifyHuman()).isBot) return { message: "Bot detected: notes can only be posted from the page.", error: true };
 
   const limit = await checkLimit(writeLimit);
   if (limit && !limit.success) return { message: `Slow down: try again in ${retryIn(limit.reset)} s.`, error: true };

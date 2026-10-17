@@ -71,3 +71,40 @@ export function withProxyHeaders(request: NextRequest) {
   headers.set("x-lab-proxy-at", new Date().toISOString());
   return NextResponse.next({ request: { headers } });
 }
+
+// Strict Content Security Policy for /security: a fresh nonce per request,
+// so only scripts the server rendered (and scripts they load, thanks to
+// 'strict-dynamic') can run. Next.js reads the nonce from the request's CSP
+// header and adds it to its own scripts. Nonces only work on pages rendered
+// per request, which is why the rest of the lab (prerendered) uses the
+// site-wide policy in next.config.ts instead.
+export function strictCsp(nonce: string, isDev = process.env.NODE_ENV === "development") {
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'report-sample'${isDev ? " 'unsafe-eval'" : ""}`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self'",
+    "connect-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    "upgrade-insecure-requests",
+    // report-uri sends each violation straight away. (Its successor, report-to,
+    // batches reports for up to a minute and, when present, replaces it in
+    // Chromium, which is too slow for a live demo.)
+    "report-uri /api/security/csp-report",
+  ].join("; ");
+}
+
+export function withStrictCsp(request: NextRequest) {
+  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+  const policy = strictCsp(nonce);
+  const headers = new Headers(request.headers);
+  headers.set("x-nonce", nonce);
+  headers.set("content-security-policy", policy);
+  const response = NextResponse.next({ request: { headers } });
+  response.headers.set("Content-Security-Policy", policy);
+  return response;
+}

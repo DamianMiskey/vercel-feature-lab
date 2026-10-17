@@ -41,7 +41,7 @@ export const features: Feature[] = [
   { slug: "ai", name: "AI SDK + AI Gateway", category: "Async & AI", phase: 5, ready: true,
     summary: "Streaming AI responses through Vercel's AI Gateway." },
 
-  { slug: "security", name: "Security", category: "Security", phase: 6, ready: false,
+  { slug: "security", name: "Security", category: "Security", phase: 6, ready: true,
     summary: "CSP with nonces, Firewall, bot protection, rate limits, BotID." },
 
   { slug: "observability", name: "Analytics & Observability", category: "Platform", phase: 7, ready: false,

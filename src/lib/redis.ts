@@ -25,6 +25,8 @@ const limiter = (name: string, tokens: number, window: `${number} s` | `${number
 // visitor; the Redis page has its own, smaller one to play with.
 export const writeLimit = () => limiter("writes", 5, "1 m");
 export const demoLimit = () => limiter("demo", 5, "30 s");
+// CSP reports come from browsers automatically; capped so nobody can flood the log.
+export const reportLimit = () => limiter("reports", 20, "1 m");
 
 // Who to count: the visitor's IP. Vercel sets x-forwarded-for itself (any
 // value the client sent is replaced), so its first entry can be trusted there.
