@@ -19,7 +19,7 @@ Production build locally: `npm run build && npm start`.
 ```bash
 npm run lint
 npm run typecheck
-npm test          # Vitest: request helpers, feature registry, route handlers, revalidation webhook
+npm test          # Vitest: request helpers, feature registry, route handlers, revalidation webhook, Proxy rules and session cookies
 npm run build     # also catches Cache Components mistakes
 ```
 
@@ -34,6 +34,7 @@ CI (`.github/workflows/ci.yml`) runs all four on every pull request.
 | `src/app/[slug]/page.tsx` | Placeholder pages for features from later phases |
 | `src/app/api/*/route.ts` | Route handlers (API endpoints, run as Vercel Functions) |
 | `src/components/` | `FeaturePage`, `Demo`, `JsonView`, `CodePeek`, `Nav` |
+| `src/proxy.ts` | Proxy (formerly middleware); its rules live in `src/lib/proxy-rules.ts` |
 | `next.config.ts` | Cache Components + security headers |
 
 **Adding a feature:** create `src/app/<slug>/page.tsx` using `FeaturePage`, then set `ready: true` in `features.ts`. A test checks that every ready feature has a page.
@@ -44,13 +45,14 @@ CI (`.github/workflows/ci.yml`) runs all four on every pull request.
 - **`CodePeek`** reads source files with a `"use cache"` function scoped to `src/`, so the code is baked in at build time and only `src/` is traced into the deployment. It uses `cacheLife("max")`: a page's cache life is the shortest of everything on it, so a shorter one here would make every page revalidate early. `next build` prints each page's life in its "Revalidate" column.
 - **On-demand revalidation** (`/static`): the button is a Server Action calling `updateTag()`; CMS-style webhooks call `POST /api/static/revalidate` with `Authorization: Bearer $REVALIDATE_SECRET`, which runs `revalidateTag(tag, "max")`. Set `REVALIDATE_SECRET` (Sensitive) in Vercel; without it the webhook answers 503.
 - **Security headers** (HSTS, nosniff, frame denial, referrer and permissions policies, a baseline CSP) are set in `next.config.ts`. A nonce-based CSP arrives in phase 6.
+- **Proxy** (`/proxy`) only runs on `/proxy/*` (see its `matcher`). It rewrites `/proxy/ab` and `/proxy/geo` to prerendered pages, so the personalised routes stay static, and gates `/proxy/members` with an HMAC-signed session cookie. Set `SESSION_SECRET` (Sensitive) in Vercel; without it sign-in is switched off. The members page re-checks the session itself rather than trusting Proxy alone.
 - **`npm audit`**: production dependencies are clean. Five findings sit in the ESLint toolchain (`eslint-config-next` → `fast-glob` → `micromatch` → `braces`, a ReDoS). No patched `braces` exists yet, and the linter never ships to Vercel.
 
 ## Roadmap
 
 - [x] **Phase 1: Scaffold.** Dashboard, feature registry, Request basics (request inspector, Vercel geo headers, env vars vs secrets, route handler), security headers, Vitest, CI
 - [x] **Phase 2: Rendering.** Server rendering (Server and Client Components, searchParams), static and ISR (time-based, on demand with `updateTag`/`revalidateTag`, `generateStaticParams`), streaming and Partial Prerendering (parallel and nested Suspense, promises into `use()`, streaming route handlers)
-- [ ] **Phase 3: Edge.** Proxy (formerly middleware: geo, A/B, auth gate), Edge Config, Flags
+- [ ] **Phase 3: Edge.** ~~Proxy (formerly middleware: geo, A/B, auth gate)~~ done; Edge Config, Flags still to do
 - [ ] **Phase 4: Storage.** Vercel Blob, Neon Postgres and Upstash Redis through the Marketplace
 - [ ] **Phase 5: Async & AI.** Cron Jobs, `after()`, AI SDK with AI Gateway
 - [ ] **Phase 6: Security.** CSP with nonces, Firewall and bot protection, rate limiting, BotID

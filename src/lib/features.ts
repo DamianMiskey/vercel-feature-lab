@@ -22,7 +22,7 @@ export const features: Feature[] = [
   { slug: "streaming", name: "Streaming & PPR", category: "Rendering", phase: 2, ready: true,
     summary: "A static shell first, dynamic parts streamed in (Cache Components)." },
 
-  { slug: "proxy", name: "Proxy (middleware)", category: "Edge", phase: 3, ready: false,
+  { slug: "proxy", name: "Proxy (middleware)", category: "Edge", phase: 3, ready: true,
     summary: "Geo routing, A/B tests and auth gates before the page runs." },
   { slug: "edge-config", name: "Edge Config & Flags", category: "Edge", phase: 3, ready: false,
     summary: "Ultra-fast reads of config and feature flags." },
