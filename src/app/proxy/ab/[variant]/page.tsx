@@ -9,8 +9,9 @@ export function generateStaticParams() {
 }
 
 const copy = {
-  a: { headline: "Ship faster with the Feature Lab", cta: "Start exploring", color: "var(--accent)" },
-  b: { headline: "Every Vercel feature, one page at a time", cta: "Take the tour", color: "#d9480f" },
+  // Text colours that keep 4.5:1 contrast in both colour schemes.
+  a: { headline: "Ship faster with the Feature Lab", cta: "Start exploring", color: "var(--accent-ink)" },
+  b: { headline: "Every Vercel feature, one page at a time", cta: "Take the tour", color: "light-dark(#c2410c, #fb923c)" },
 };
 
 async function Variant({ params }: { params: Promise<{ variant: string }> }) {

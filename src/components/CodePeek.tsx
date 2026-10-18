@@ -22,7 +22,7 @@ export async function CodePeek({ file }: { file: string }) {
   return (
     <details className="codepeek">
       <summary className="ghost-button">Show code · <code>src/{file}</code></summary>
-      <pre className="code">{source}</pre>
+      <pre className="code" tabIndex={0}>{source}</pre>
     </details>
   );
 }
