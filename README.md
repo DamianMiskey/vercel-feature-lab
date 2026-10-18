@@ -21,10 +21,14 @@ npm run lint
 npm run typecheck
 npm test          # Vitest: request helpers, feature registry, route handlers, revalidation webhook, Proxy rules and session cookies, flag bucketing, upload checks, note rules, rate-limit helpers, cron route and config, simulated AI chat, CSP, firewall rules and reports, the comparison table
 npm run build     # also catches Cache Components mistakes
+npm run e2e       # Playwright against the build (starts `npm start` on :3200)
+BASE_URL=https://vercel.djmiskey.com npm run e2e   # …or against a deployment, plus the @deployed tests
 npm run db:migrate  # applies db/schema.sql to DATABASE_URL (safe to re-run)
 ```
 
-CI (`.github/workflows/ci.yml`) runs all four on every pull request.
+CI (`.github/workflows/ci.yml`) runs lint, typecheck, unit tests, the build and the end-to-end suite on every pull request.
+
+**End-to-end tests** (`e2e/`, Playwright) are **read-only** (previews and production share one Neon database, so nothing signs the guestbook, uploads or spends a shared rate limit). `pages.spec` loads every page on desktop and a Pixel 7 and fails on exceptions, console errors, failed requests, CSP blocks (except the one `/security` blocks on purpose, which it requires) and sideways overflow; in CI there are no secrets, so it also proves every page degrades gracefully. `headers.spec` checks the security headers, the per-request nonce on `/security`, the sandbox CSP on uploads, Proxy's cookies and redirects, and the API routes' refusals. `a11y.spec` runs axe (WCAG 2.2 A/AA) in light and dark mode. `behaviour.spec` streams, chats with the simulated model and signs in to the members area. Tests tagged `@deployed` run only with `BASE_URL`: the Firewall's 403s, `x-vercel-id`, BotID refusing a scripted request, the `.vercel.app` 308 and every service connected. Locally the browser is the installed Edge; CI installs Chromium. Web Analytics' and Speed Insights' `/_vercel/…` scripts only exist on Vercel, so their 404s are allowed off Vercel and fail the suite on a deployment.
 
 ## Layout
 
@@ -76,3 +80,4 @@ CI (`.github/workflows/ci.yml`) runs all four on every pull request.
 - [x] **Phase 5: Async & AI.** Cron Jobs, `after()`, AI SDK chat (simulated model; AI Gateway one env var away)
 - [x] **Phase 6: Security.** Site-wide CSP plus a strict nonce CSP with violation reports, Firewall rules in `vercel.json`, BotID (Basic), rate limiting with Upstash
 - [x] **Phase 7: Platform.** Web Analytics, Speed Insights, runtime logs and deployment info, Vercel vs Cloudflare comparison
+- [x] **Testing.** Playwright end-to-end suite in CI (104 local tests + 9 against a deployment). It found and fixed: `/blob` crashing when the Blob token is missing or expired, four pages wider than a phone (layout column and unbreakable inline code), white-on-blue contrast in dark mode, low-contrast A/B links, and scrollable code boxes unreachable by keyboard

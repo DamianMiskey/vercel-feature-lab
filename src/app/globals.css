@@ -17,7 +17,7 @@
     --border: #2f2e2b;
     --text: #ecebe7;
     --muted: #a09e97;
-    --accent: #3291ff;
+    --accent: #0f6bd6; /* white text on it ≥ 4.5:1 (buttons, active nav, badges) */
     --accent-ink: #52a8ff;
     --code-bg: #232321;
     --error: #ff7b6e;
@@ -34,10 +34,14 @@ body {
 }
 a { color: var(--accent-ink); }
 code { font: 0.9em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 4px; }
+/* Long commands in running text may break anywhere rather than push the page wider. */
+:not(pre) > code { overflow-wrap: anywhere; }
 h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 0.4rem; }
 h2 { font-size: 1.05rem; margin: 0 0 0.6rem; }
 
-.shell { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+/* minmax(0, 1fr), not 1fr: a column sized to its content would let a wide
+   table or code line widen the whole page on a phone. */
+.shell { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100vh; }
 .sidebar {
   position: sticky; top: 0; height: 100vh; overflow-y: auto;
   border-right: 1px solid var(--border); background: var(--surface); padding: 1rem 0.75rem;
@@ -50,7 +54,7 @@ h2 { font-size: 1.05rem; margin: 0 0 0.6rem; }
 .nav-link.pending { color: var(--muted); }
 .nav-link.pending.active { color: #fff; }
 
-.content { padding: 2rem clamp(16px, 4vw, 3rem); max-width: 1000px; width: 100%; }
+.content { padding: 2rem clamp(16px, 4vw, 3rem); max-width: 1000px; width: 100%; min-width: 0; }
 .feature-head { margin-bottom: 1.5rem; }
 .tagline { color: var(--muted); font-size: 1.05rem; margin: 0; }
 
@@ -95,7 +99,7 @@ pre.json, pre.code {
 .how li + li { margin-top: 0.4rem; }
 
 @media (max-width: 760px) {
-  .shell { grid-template-columns: 1fr; }
+  .shell { grid-template-columns: minmax(0, 1fr); }
   .sidebar { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--border);
     display: flex; flex-wrap: wrap; gap: 0.25rem; }
   .brand { width: 100%; padding-bottom: 0.25rem; }

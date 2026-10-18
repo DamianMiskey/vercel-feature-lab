@@ -20,7 +20,11 @@ async function Who() {
 async function Gallery() {
   await connection();
   if (!blobConfigured()) return <p className="error">Blob isn&apos;t connected for this environment.</p>;
-  const [session, { blobs }] = await Promise.all([currentSession(), list({ prefix: UPLOAD_PREFIX, limit: 100 })]);
+  // A missing or expired token (the OIDC token lasts ~12 hours locally) or a
+  // Blob outage shouldn't take the whole page down.
+  const listed = await list({ prefix: UPLOAD_PREFIX, limit: 100 }).catch((error: Error) => error);
+  if (listed instanceof Error) return <p className="error">Blob couldn&apos;t be reached: {listed.message.split(". ")[0]}.</p>;
+  const [session, { blobs }] = [await currentSession(), listed];
   const newest = blobs.sort((a, b) => +b.uploadedAt - +a.uploadedAt).slice(0, KEEP_UPLOADS);
   if (!newest.length) return <p className="muted">No uploads yet.</p>;
   if (!session) return <p className="muted">{newest.length} image{newest.length === 1 ? "" : "s"} in the store. Sign in to see them.</p>;
