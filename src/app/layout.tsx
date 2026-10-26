@@ -2,7 +2,10 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { THEME_SCRIPT } from "@djmiskey/lab-tokens/theme";
 import { Nav } from "@/components/Nav";
+import "@djmiskey/lab-tokens/tokens.css";
+import "@djmiskey/lab-tokens/theme-switch.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,7 +15,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    // suppressHydrationWarning: the theme script sets data-theme before React loads.
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Applies the visitor's theme before the first paint, so there's no flash. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body>
         <div className="shell">
           <Nav />

@@ -1,28 +1,16 @@
+/* The shared look of every djmiskey.com lab comes from @djmiskey/lab-tokens
+   (tokens.css, imported in layout.tsx): the neutral colours, and light/dark
+   following the theme switch. This lab sets its accent, Vercel blue, and
+   keeps its own names for the shared tokens. */
 :root {
-  --bg: #f7f7f5;
-  --surface: #ffffff;
-  --border: #e3e2de;
-  --text: #1d1d1b;
-  --muted: #64625d;
-  --accent: #0070f3;
-  --accent-ink: #0060d1;
-  --code-bg: #f1f0ec;
-  --error: #c0362c;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #131312;
-    --surface: #1c1c1a;
-    --border: #2f2e2b;
-    --text: #ecebe7;
-    --muted: #a09e97;
-    --accent: #0f6bd6; /* white text on it ≥ 4.5:1 (buttons, active nav, badges) */
-    --accent-ink: #52a8ff;
-    --code-bg: #232321;
-    --error: #ff7b6e;
-    color-scheme: dark;
-  }
+  --lab-accent: #0070f3;
+  --lab-accent-dark: #0f6bd6; /* white text on it ≥ 4.5:1 (buttons, active nav, badges) */
+  --lab-accent-ink: #0060d1;
+  --lab-accent-ink-dark: #52a8ff;
+  --border: var(--line);
+  --text: var(--fg);
+  --code-bg: var(--code);
+  --error: var(--danger);
 }
 
 * { box-sizing: border-box; }
@@ -53,6 +41,7 @@ h2 { font-size: 1.05rem; margin: 0 0 0.6rem; }
 .nav-link.active { background: var(--accent); color: #fff; }
 .nav-link.pending { color: var(--muted); }
 .nav-link.pending.active { color: #fff; }
+.nav-theme { width: 100%; margin-top: 1rem; padding: 0.75rem 0.5rem 0; border-top: 1px solid var(--border); }
 
 .content { padding: 2rem clamp(16px, 4vw, 3rem); max-width: 1000px; width: 100%; min-width: 0; }
 .feature-head { margin-bottom: 1.5rem; }
@@ -106,6 +95,7 @@ pre.json, pre.code {
   .nav-group { display: contents; }
   .nav-cat { display: none; }
   .nav-link { font-size: 0.85rem; border: 1px solid var(--border); }
+  .nav-theme { margin-top: 0.5rem; }
   .explain { grid-template-columns: 1fr; }
 }
 

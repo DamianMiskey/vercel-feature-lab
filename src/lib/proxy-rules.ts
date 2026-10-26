@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+import { THEME_SCRIPT } from "@djmiskey/lab-tokens/theme-script";
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, readSession } from "@/lib/session";
 
@@ -78,10 +80,15 @@ export function withProxyHeaders(request: NextRequest) {
 // header and adds it to its own scripts. Nonces only work on pages rendered
 // per request, which is why the rest of the lab (prerendered) uses the
 // site-wide policy in next.config.ts instead.
+// The one exception: the shared theme script in <head> comes from the root
+// layout, which can't know the nonce without making every page dynamic, so
+// it's allowed by its hash. A hash permits that exact script and nothing else.
+export const THEME_SCRIPT_HASH = `'sha256-${createHash("sha256").update(THEME_SCRIPT).digest("base64")}'`;
+
 export function strictCsp(nonce: string, isDev = process.env.NODE_ENV === "development") {
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'report-sample'${isDev ? " 'unsafe-eval'" : ""}`,
+    `script-src 'self' 'nonce-${nonce}' ${THEME_SCRIPT_HASH} 'strict-dynamic' 'report-sample'${isDev ? " 'unsafe-eval'" : ""}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self'",

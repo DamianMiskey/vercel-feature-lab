@@ -4,16 +4,24 @@ import { NextRequest } from "next/server";
 import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
 import { describe, expect, it } from "vitest";
 import { normalizeReports } from "@/lib/csp-reports";
-import { strictCsp, withStrictCsp } from "@/lib/proxy-rules";
+import { createHash } from "node:crypto";
+import { THEME_SCRIPT } from "@djmiskey/lab-tokens/theme-script";
+import { strictCsp, THEME_SCRIPT_HASH, withStrictCsp } from "@/lib/proxy-rules";
 import { config } from "@/proxy";
 
 describe("strict CSP", () => {
   it("allows only nonce'd scripts, with no unsafe-inline", () => {
     const policy = strictCsp("abc123", false);
-    expect(policy).toContain("script-src 'self' 'nonce-abc123' 'strict-dynamic'");
+    expect(policy).toContain(`script-src 'self' 'nonce-abc123' ${THEME_SCRIPT_HASH} 'strict-dynamic'`);
     expect(policy).not.toMatch(/script-src[^;]*unsafe-inline/);
     expect(policy).not.toContain("unsafe-eval");
     expect(strictCsp("abc123", true)).toContain("'unsafe-eval'");
+  });
+
+  it("allows the shared theme script by the hash of its exact text", () => {
+    const hash = createHash("sha256").update(THEME_SCRIPT).digest("base64");
+    expect(THEME_SCRIPT_HASH).toBe(`'sha256-${hash}'`);
+    expect(strictCsp("abc123", false)).toContain(THEME_SCRIPT_HASH);
   });
 
   it("gives every request a fresh nonce, passed to the page and the browser", () => {

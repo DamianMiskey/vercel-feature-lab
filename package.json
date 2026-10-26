@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@ai-sdk/react": "^4.0.130",
+    "@djmiskey/lab-tokens": "github:DamianMiskey/lab-tokens#v1.1.0",
     "@neondatabase/serverless": "^1.2.0",
     "@upstash/ratelimit": "^2.2.0",
     "@upstash/redis": "^1.39.0",

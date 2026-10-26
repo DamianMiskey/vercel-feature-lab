@@ -19,7 +19,7 @@ test.describe("security headers", () => {
       if (path === "/security") {
         // The strict policy from Proxy: a fresh nonce on every request.
         const scriptSrc = csp.split(";").find((d) => d.trim().startsWith("script-src"))!;
-        expect(scriptSrc).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/=]+' 'strict-dynamic'/);
+        expect(scriptSrc).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/=]+' 'sha256-[A-Za-z0-9+/=]+' 'strict-dynamic'/);
         expect(scriptSrc).not.toContain("'unsafe-inline'");
       } else {
         expect(csp).toContain("default-src 'self'");
