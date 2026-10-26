@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ThemeSwitch } from "@djmiskey/lab-tokens/ThemeSwitch";
 import { categories, features } from "@/lib/features";
 
 // The sidebar is a Client Component only because it highlights the current
@@ -28,6 +29,7 @@ export function Nav() {
           ))}
         </div>
       ))}
+      <div className="nav-theme"><ThemeSwitch /></div>
     </nav>
   );
 }

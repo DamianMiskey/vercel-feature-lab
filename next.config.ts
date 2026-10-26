@@ -37,6 +37,8 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   // Don't advertise the framework in an X-Powered-By header.
   poweredByHeader: false,
+  // The shared look (@djmiskey/lab-tokens) ships TypeScript source.
+  transpilePackages: ["@djmiskey/lab-tokens"],
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },

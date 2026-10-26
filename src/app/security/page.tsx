@@ -21,7 +21,7 @@ async function StrictCsp() {
       <script dangerouslySetInnerHTML={{ __html: "window.__lab=Object.assign(window.__lab||{},{injected:true})" }} />
       <CspCheck />
       <p className="small muted">This response&apos;s policy (the nonce changes on every reload):</p>
-      <pre className="json">{policy.replaceAll("; ", ";\n")}</pre>
+      <pre className="json" tabIndex={0}>{policy.replaceAll("; ", ";\n")}</pre>
     </>
   );
 }
@@ -84,7 +84,9 @@ export default async function SecurityPage() {
         <p className="small muted">
           Why not everywhere? Nonces only work on pages rendered per request. The rest of the lab is prerendered (Partial
           Prerendering), so it uses a site-wide policy from <code>next.config.ts</code> that locks everything to this site but
-          must allow inline scripts.
+          must allow inline scripts. This page&apos;s policy also lists one <code>sha256-…</code> hash: the shared theme script in{" "}
+          <code>&lt;head&gt;</code> comes from that prerendered layout and can&apos;t carry the nonce, so it&apos;s allowed by the
+          hash of its exact text instead.
         </p>
       </Demo>
 
